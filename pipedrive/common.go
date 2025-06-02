@@ -1,5 +1,23 @@
 package pipedrive
 
+import "time"
+
+type TimeStamp struct {
+	time.Time
+}
+
+func (ts TimeStamp) String() string {
+	return ts.Time.String()
+}
+
+func (ts TimeStamp) DateString() string {
+	return ts.Time.Format("2000-11-30")
+}
+
+func (ts TimeStamp) DateTimeString() string {
+	return ts.Time.Format("2000-11-30 22:10:55")
+}
+
 // Additional common responses are defined here
 // this is to be able to unmarshal the pipedrive response
 // into more bite-sized structs, in order to limit the amount of overwhelming

@@ -22,8 +22,6 @@ go.work
 go.work.sum
 
 
-main.go
-
 # env file
 .env
 

@@ -1,13 +1,17 @@
 package pipedrive
 
 import (
+	"context"
+	"encoding/json"
 	"fmt"
 	"github.com/joho/godotenv"
 	"log"
 	"net/url"
 	"os"
 	"reflect"
+	"strings"
 	"testing"
+	"time"
 )
 
 func getTestingCredentials(key string) string {
@@ -32,6 +36,90 @@ func getTestClient() *Client {
 	}
 
 	return NewClient(cfg)
+
+}
+
+func TestGetAll(t *testing.T) {
+	client := getTestClient()
+
+	testCases := []struct {
+		name           string
+		ctx            context.Context
+		params         OrganizationGetAllOpts
+		expectedOutput string
+		expectError    bool
+	}{
+		{
+			name: "Test correct use",
+			ctx:  context.TODO(),
+			params: OrganizationGetAllOpts{
+				IncludeFields: "closed_deals_count,notes_count",
+				Limit:         3,
+			},
+			expectedOutput: "?include_fields=closed_deals_count%2cnotes_count&limit=3",
+			expectError:    false,
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			result, response, err := client.Organization.GetAll(tc.ctx, tc.params)
+			if err != nil {
+				t.Fatalf("%s failed. recieved error : %v",
+					tc.name, err)
+			}
+
+			actualOutput := response.Request.URL.String()
+
+			if !strings.Contains(actualOutput, tc.expectedOutput) {
+				t.Fatalf("%s failed. expected %v, received %v",
+					tc.name, tc.expectedOutput, actualOutput)
+			}
+
+			v, _ := json.MarshalIndent(result, "", "\t")
+
+			t.Log(string(v))
+		})
+	}
+}
+
+func TestStringify(t *testing.T) {
+	globalTime := time.Now()
+
+	testCases := []struct {
+		name           string
+		testStruct     fmt.Stringer
+		expectedOutput string
+		expectError    bool
+	}{
+		{
+			name:           "Test TimeStamp String()",
+			testStruct:     TimeStamp{globalTime},
+			expectedOutput: globalTime.String(),
+			expectError:    false,
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			actualOutput := tc.testStruct.String()
+
+			if !tc.expectError {
+				if tc.expectedOutput != actualOutput {
+					t.Errorf("failed %v : expected %v but received %v",
+						tc.name, tc.expectedOutput, actualOutput)
+				}
+			} else {
+				if tc.expectedOutput == actualOutput {
+					t.Errorf("failed %v : expected %v but received %v",
+						tc.name, tc.expectedOutput, actualOutput)
+				}
+
+			}
+
+		})
+
+	}
 
 }
 
@@ -120,7 +208,8 @@ func compareURLQueries(t *testing.T, expectedURLStr, actualURLStr string) {
 
 	if !reflect.DeepEqual(expectedQuery, actualQuery) {
 		t.Errorf("Query mismatch:\nExpected: %v\nActual:   %v", expectedQuery, actualQuery)
-	}
+	} else {
 
-	t.Logf("All tests successful %v", actualURL.String())
+		t.Logf("All tests successful %v", actualURL.String())
+	}
 }

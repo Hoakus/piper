@@ -41,7 +41,7 @@ type Client struct {
 	client  *http.Client
 	BaseURL *url.URL
 	apiKey  string
-	Rate    *RateDetails
+	Rate    *ClientRate
 
 	// Every pipedrive module is a piper
 	common piper
@@ -54,21 +54,11 @@ type piper struct {
 	client *Client
 }
 
-type RateDetails struct {
+type ClientRate struct {
 	Limit     int
 	Remaining int
 	Reset     time.Duration
 	mu        sync.Mutex
-}
-
-type Response struct {
-	Status       HTTPStatus
-	HttpResponse *http.Response
-}
-
-type HTTPStatus struct {
-	Code int
-	Text string
 }
 
 func (c *Client) setRateDetails(response *http.Response) error {
@@ -125,6 +115,23 @@ func (c *Client) createRequestURL(endpoint string, queryParams any, apiVersion s
 	return strings.ToLower(reqURL.String()), nil
 }
 
+func checkForErrors(response *http.Response) error {
+	if response.StatusCode < 299 {
+		return nil
+	}
+
+	errorDetails := ErrorDetails{}
+
+	json.NewDecoder(response.Body).Decode(&errorDetails)
+
+	errorResponse := ErrorResponse{
+		Response: response,
+		Details:  errorDetails,
+	}
+
+	return errorResponse
+}
+
 func (c *Client) NewRequest(method, endpoint, apiVersion string, queryParams, body any) (*http.Request, error) {
 	// apiVersion must be passed in as not all endpoints have migrated to v2
 	if !strings.HasSuffix(c.BaseURL.Path, "/") {
@@ -138,10 +145,10 @@ func (c *Client) NewRequest(method, endpoint, apiVersion string, queryParams, bo
 	}
 
 	// Prepare payload if body exists
-	var buf io.Reader
+	var payload io.ReadWriter
 
 	if body != nil {
-		buf := bytes.NewBuffer([]byte{})
+		buf := &bytes.Buffer{}
 		encoder := json.NewEncoder(buf)
 		encoder.SetEscapeHTML(false)
 
@@ -150,19 +157,18 @@ func (c *Client) NewRequest(method, endpoint, apiVersion string, queryParams, bo
 		if err != nil {
 			return nil, err
 		}
+
+		payload = buf
 	}
 
-	request, err := http.NewRequest(method, url, buf)
+	request, err := http.NewRequest(method, url, payload)
 
 	if err != nil {
 		return nil, err
 	}
 
-	// Set the API key in the headers
-	// pipedrive no longer accepts the apiKey as a query param
 	request.Header.Set("x-api-token", c.apiKey)
 
-	// Set the headers if we're sending a payload
 	if body != nil {
 		request.Header.Set("Content-Type", "application/json")
 	}
@@ -170,8 +176,10 @@ func (c *Client) NewRequest(method, endpoint, apiVersion string, queryParams, bo
 	return request, nil
 }
 
-func (c *Client) Do(ctx context.Context, request *http.Request, container any) (*Response, error) {
+func (c *Client) Do(ctx context.Context, request *http.Request, container any) (*http.Response, error) {
 	// Check Rate Limiting first
+	//
+	// this is baked in to the package for now - sorry
 	if c.Rate != nil {
 		c.Rate.mu.Lock()
 
@@ -193,9 +201,7 @@ func (c *Client) Do(ctx context.Context, request *http.Request, container any) (
 		}
 	}
 
-	// starting request with context here
 	request = request.WithContext(ctx)
-
 	response, err := c.client.Do(request)
 
 	if err != nil {
@@ -207,25 +213,17 @@ func (c *Client) Do(ctx context.Context, request *http.Request, container any) (
 		}
 	}
 
-	var httpStatus HTTPStatus
-	httpStatus.Code = response.StatusCode
-	httpStatus.Text = response.Status
-
-	// Separates status from the response for easier use
-	// for the end user. Still returns the full httpResponse
-	// for debugging errors
-	newResponse := &Response{Status: httpStatus, HttpResponse: response}
-
-	// set the Rate details returned from the response
-	// so we can control request flow on subsequent calls and prevent
-	// errors from rate limitng
+	// Set the Rate details returned from the response
+	// so we can control request flow on subsequent calls
+	// and prevent errors from rate limitng
 	err = c.setRateDetails(response)
 	if err != nil {
 		fmt.Println(err)
 	}
 
-	if newResponse.Status.Code > 299 {
-		return newResponse, fmt.Errorf("Request failed: %v - URL: %v", newResponse.Status.Text, request.URL)
+	err = checkForErrors(response)
+	if err != nil {
+		return nil, err
 	}
 
 	// Reading a small, fixed amount (like 512 bytes) ensures that any
@@ -237,21 +235,20 @@ func (c *Client) Do(ctx context.Context, request *http.Request, container any) (
 	}()
 
 	// Unmarshal the data to the provided piperResponse struct
-	// passed in from the piper.method call
+	// passed in from the piper.method caller
 	err = json.NewDecoder(response.Body).Decode(container)
-
 	if err != nil {
-		return newResponse, err
+		return nil, err
 	}
 
-	return newResponse, nil
+	return response, nil
 }
 
 func NewClient(cfg *Config) *Client {
 	baseURLString := hostProtocol + "://" + cfg.DomainName + "." + defaultBaseURL
 	baseURL, _ := url.Parse(baseURLString)
 
-	rate := &RateDetails{
+	rate := &ClientRate{
 		Limit:     0,
 		Remaining: 1,
 		Reset:     time.Duration(0),
