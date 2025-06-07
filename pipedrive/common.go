@@ -1,6 +1,10 @@
 package pipedrive
 
-import "time"
+import (
+	"encoding/json"
+	"fmt"
+	"time"
+)
 
 type TimeStamp struct {
 	time.Time
@@ -33,15 +37,18 @@ type Pagination struct {
 	NextStart             int  `json:"next_start"`
 }
 
-type RelatedObjects struct {
-	User struct {
-		Profile struct {
-			ID         int    `json:"id"`
-			Name       string `json:"name"`
-			Email      string `json:"email"`
-			HasPic     int    `json:"has_pic"`
-			PicHash    any    `json:"pic_hash"`
-			ActiveFlag bool   `json:"active_flag"`
-		} `json:"profile"`
-	} `json:"user"`
+func Stringify(obj any) string {
+	if obj == nil {
+		return "<nil>"
+	}
+	switch v := obj.(type) {
+	case *TimeStamp:
+		return v.String()
+	default:
+		data, err := json.Marshal(obj)
+		if err == nil {
+			return string(data)
+		}
+		return fmt.Sprintf("%#v", obj)
+	}
 }

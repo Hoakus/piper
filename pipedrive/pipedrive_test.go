@@ -45,14 +45,14 @@ func TestGetAll(t *testing.T) {
 	testCases := []struct {
 		name           string
 		ctx            context.Context
-		params         OrganizationGetAllOpts
+		params         OrganizationsGetOptions
 		expectedOutput string
 		expectError    bool
 	}{
 		{
 			name: "Test correct use",
 			ctx:  context.TODO(),
-			params: OrganizationGetAllOpts{
+			params: OrganizationsGetOptions{
 				IncludeFields: "closed_deals_count,notes_count",
 				Limit:         3,
 			},

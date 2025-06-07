@@ -24,7 +24,7 @@ func main() {
 	// pipedrive modules are called "pipers" internally
 	// access any piper by it's module name - i.e "Organization"
 	// followed by an endpoint method
-	record, _, err := client.Organization.Get(context.Background(), 2366, pipedrive.OrganizationGetOpts{})
+	record, _, err := client.Organization.Get(context.Background(), 2366, pipedrive.OrganizationGetOptions{})
 	if err != nil {
 		fmt.Println(err)
 	}

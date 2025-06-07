@@ -48,6 +48,8 @@ type Client struct {
 
 	// TODO: Add additional modules
 	Organization *OrganizationPiper
+	Task         *TaskPiper
+	Activities   *ActivitiesPiper
 }
 
 type piper struct {
@@ -267,6 +269,8 @@ func NewClient(cfg *Config) *Client {
 	// this allows functionality for every piper to use the
 	// underlying logic of client
 	newClient.Organization = (*OrganizationPiper)(&newClient.common)
+	newClient.Task = (*TaskPiper)(&newClient.common)
+	newClient.Activities = (*ActivitiesPiper)(&newClient.common)
 
 	return newClient
 }
