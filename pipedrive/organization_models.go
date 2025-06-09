@@ -91,7 +91,21 @@ type OrganizationAddOptions struct {
 	UpdateTime   *TimeStamp `json:"update_time,omitempty"`
 	VisibleTo    int        `json:"visible_to,omitempty"`
 	LabelIDs     []int      `json:"label_ids,omitempty"`
-	CustomFields any        `json:"custom_fields,omitempty"`
+	Address      *Address   `json:"address,omitempty"`
+	CustomFields *any       `json:"custom_fields,omitempty"`
+}
+
+type Address struct {
+	Value            string `json:"value,omitempty"`
+	StreetNumber     any    `json:"street_number,omitempty"`
+	Route            any    `json:"route,omitempty"`
+	Sublocality      any    `json:"sublocality,omitempty"`
+	Locality         any    `json:"locality,omitempty"`
+	AdminAreaLevel1  any    `json:"admin_area_level_1,omitempty"`
+	AdminAreaLevel2  any    `json:"admin_area_level_2,omitempty"`
+	Country          any    `json:"country,omitempty"`
+	PostalCode       any    `json:"postal_code,omitempty"`
+	FormattedAddress any    `json:"formatted_address,omitempty"`
 }
 
 func (o OrganizationAddOptions) String() string {
