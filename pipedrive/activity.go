@@ -19,9 +19,9 @@ type ActivityResponse struct {
 }
 
 func (piper *ActivitiesPiper) Add(ctx context.Context, params ActivitiesAddOptions) (*ActivityResponse, *http.Response, error) {
-	endpoint := "activities"
+	endpoint := "api/v2/activities"
 
-	request, err := piper.client.NewRequest("POST", endpoint, "2", params, nil)
+	request, err := piper.client.NewRequest("POST", endpoint, params, nil)
 
 	if err != nil {
 		return nil, nil, err

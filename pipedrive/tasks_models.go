@@ -19,12 +19,12 @@ type Task struct {
 }
 
 type TasksGetOptions struct {
-	Cursor       string `json:"cursor,omitempty"`
-	Limit        int    `json:"limit,omitempty"`
-	AssigneeID   int    `json:"assignee_id,omitempty"`
-	ProjectID    int    `json:"project_id,omitempty"`
-	ParentTaskID int    `json:"parent_task_id,omitempty"`
-	Done         int    `json:"done,omitempty"`
+	Cursor       string `url:"cursor,omitempty"`
+	Limit        int    `url:"limit,omitempty"`
+	AssigneeID   int    `url:"assignee_id,omitempty"`
+	ProjectID    int    `url:"project_id,omitempty"`
+	ParentTaskID int    `url:"parent_task_id,omitempty"`
+	Done         int    `url:"done,omitempty"`
 }
 
 func (t TasksGetOptions) String() string {

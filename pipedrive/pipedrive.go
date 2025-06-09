@@ -50,6 +50,8 @@ type Client struct {
 	Organization *OrganizationPiper
 	Task         *TaskPiper
 	Activities   *ActivitiesPiper
+	Leads        *LeadsPiper
+	DealFields   *DealFieldsPiper
 }
 
 type piper struct {
@@ -92,14 +94,14 @@ func (c *Client) setRateDetails(response *http.Response) error {
 	return nil
 }
 
-func (c *Client) createRequestURL(endpoint string, queryParams any, apiVersion string) (string, error) {
+func (c *Client) createRequestURL(endpoint string, queryParams any) (string, error) {
 	reqURL := *c.BaseURL
 
 	// some pipedrive endpoints require endpoint requests to contain
 	// information in the URL, but not as a query param. In these cases,
 	// the correct value needs to be passed in as part of the endpoint
 	// string, not queryParams
-	reqURL.Path += "api" + "/" + "v" + apiVersion + "/" + endpoint
+	reqURL.Path += endpoint
 
 	if queryParams == nil {
 		return reqURL.String(), nil
@@ -114,7 +116,7 @@ func (c *Client) createRequestURL(endpoint string, queryParams any, apiVersion s
 
 	reqURL.RawQuery = userQueries.Encode()
 
-	return strings.ToLower(reqURL.String()), nil
+	return reqURL.String(), nil
 }
 
 func checkForErrors(response *http.Response) error {
@@ -134,13 +136,13 @@ func checkForErrors(response *http.Response) error {
 	return errorResponse
 }
 
-func (c *Client) NewRequest(method, endpoint, apiVersion string, queryParams, body any) (*http.Request, error) {
+func (c *Client) NewRequest(method, endpoint string, queryParams, body any) (*http.Request, error) {
 	// apiVersion must be passed in as not all endpoints have migrated to v2
 	if !strings.HasSuffix(c.BaseURL.Path, "/") {
 		return nil, fmt.Errorf("Client.BaseURL must end with '/' : %v", c.BaseURL)
 	}
 
-	url, err := c.createRequestURL(endpoint, queryParams, apiVersion)
+	url, err := c.createRequestURL(endpoint, queryParams)
 
 	if err != nil {
 		return nil, err
@@ -149,6 +151,7 @@ func (c *Client) NewRequest(method, endpoint, apiVersion string, queryParams, bo
 	// Prepare payload if body exists
 	var payload io.ReadWriter
 
+	fmt.Println(body)
 	if body != nil {
 		buf := &bytes.Buffer{}
 		encoder := json.NewEncoder(buf)
@@ -162,6 +165,8 @@ func (c *Client) NewRequest(method, endpoint, apiVersion string, queryParams, bo
 
 		payload = buf
 	}
+
+	fmt.Println(payload)
 
 	request, err := http.NewRequest(method, url, payload)
 
@@ -271,6 +276,8 @@ func NewClient(cfg *Config) *Client {
 	newClient.Organization = (*OrganizationPiper)(&newClient.common)
 	newClient.Task = (*TaskPiper)(&newClient.common)
 	newClient.Activities = (*ActivitiesPiper)(&newClient.common)
+	newClient.Leads = (*LeadsPiper)(&newClient.common)
+	newClient.DealFields = (*DealFieldsPiper)(&newClient.common)
 
 	return newClient
 }

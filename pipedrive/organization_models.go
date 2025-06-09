@@ -1,26 +1,22 @@
 package pipedrive
 
-import (
-	"time"
-)
-
 // Defines the different type of Organization responses
 // when accessing certain endpoints. When you call a piper.Method,
 // on of these 'records' is returned along with the HTTPResponse
 type Organization struct {
-	ID            int       `json:"id"`
-	Name          string    `json:"name"`
-	AddTime       time.Time `json:"add_time"`
-	UpdateTime    time.Time `json:"update_time"`
-	VisibleTo     int       `json:"visible_to"`
-	OwnerID       int       `json:"owner_id"`
-	LabelIds      []any     `json:"label_ids"`
-	Website       string    `json:"website,omitempty"`
-	Linkedin      string    `json:"linkedin,omitempty"`
-	Industry      int       `json:"industry"`
-	AnnualRevenue int       `json:"annual_revenue"`
-	EmployeeCount int       `json:"employee_count"`
-	IsDeleted     bool      `json:"is_deleted"`
+	ID            int        `json:"id"`
+	Name          string     `json:"name"`
+	AddTime       *TimeStamp `json:"add_time"`
+	UpdateTime    *TimeStamp `json:"update_time"`
+	VisibleTo     int        `json:"visible_to"`
+	OwnerID       int        `json:"owner_id"`
+	LabelIds      []any      `json:"label_ids"`
+	Website       string     `json:"website,omitempty"`
+	Linkedin      string     `json:"linkedin,omitempty"`
+	Industry      int        `json:"industry"`
+	AnnualRevenue int        `json:"annual_revenue"`
+	EmployeeCount int        `json:"employee_count"`
+	IsDeleted     bool       `json:"is_deleted"`
 	Address       struct {
 		Value            string `json:"value"`
 		StreetNumber     any    `json:"street_number"`

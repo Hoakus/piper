@@ -21,9 +21,9 @@ type OrganizationsResponse struct {
 
 // https://developers.pipedrive.com/docs/api/v1/Organizations#getOrganizations
 func (piper *OrganizationPiper) GetAll(ctx context.Context, params OrganizationsGetOptions) (*OrganizationsResponse, *http.Response, error) {
-	endpoint := "organizations"
+	endpoint := "api/v2/organizations"
 
-	request, err := piper.client.NewRequest("GET", endpoint, "2", &params, nil)
+	request, err := piper.client.NewRequest("GET", endpoint, &params, nil)
 
 	if err != nil {
 		return nil, nil, err
@@ -41,9 +41,9 @@ func (piper *OrganizationPiper) GetAll(ctx context.Context, params Organizations
 
 // https://developers.pipedrive.com/docs/api/v1/Organizations#getOrganization
 func (piper *OrganizationPiper) Get(ctx context.Context, orgID int, params OrganizationGetOptions) (*OrganizationResponse, *http.Response, error) {
-	endpoint := fmt.Sprintf("organizations/%d", orgID)
+	endpoint := fmt.Sprintf("api/v2/organizations/%d", orgID)
 
-	request, err := piper.client.NewRequest("GET", endpoint, "2", params, nil)
+	request, err := piper.client.NewRequest("GET", endpoint, params, nil)
 
 	if err != nil {
 		return nil, nil, err
@@ -61,9 +61,9 @@ func (piper *OrganizationPiper) Get(ctx context.Context, orgID int, params Organ
 
 // https://developers.pipedrive.com/docs/api/v1/Organizations#addOrganization
 func (piper *OrganizationPiper) Add(ctx context.Context, body OrganizationAddOptions) (*OrganizationResponse, *http.Response, error) {
-	endpoint := "organizations"
+	endpoint := "api/v2/organizations"
 
-	request, err := piper.client.NewRequest("POST", endpoint, "2", nil, body)
+	request, err := piper.client.NewRequest("POST", endpoint, nil, body)
 
 	if err != nil {
 		return nil, nil, err
@@ -81,9 +81,9 @@ func (piper *OrganizationPiper) Add(ctx context.Context, body OrganizationAddOpt
 
 // https://developers.pipedrive.com/docs/api/v1/Organizations#updateOrganization
 func (piper *OrganizationPiper) Update(ctx context.Context, orgID int, body OrganizationUpdateOptions) (*OrganizationResponse, *http.Response, error) {
-	endpoint := fmt.Sprintf("organizations/%d", orgID)
+	endpoint := fmt.Sprintf("api/v2/organizations/%d", orgID)
 
-	request, err := piper.client.NewRequest("PATCH", endpoint, "2", nil, body)
+	request, err := piper.client.NewRequest("PATCH", endpoint, nil, body)
 
 	if err != nil {
 		return nil, nil, err
@@ -101,9 +101,9 @@ func (piper *OrganizationPiper) Update(ctx context.Context, orgID int, body Orga
 
 // https://developers.pipedrive.com/docs/api/v1/Organizations#deleteOrganization
 func (piper *OrganizationPiper) Delete(ctx context.Context, orgID int) (*OrganizationResponse, *http.Response, error) {
-	endpoint := fmt.Sprintf("organizations/%d", orgID)
+	endpoint := fmt.Sprintf("api/v2/organizations/%d", orgID)
 
-	request, err := piper.client.NewRequest("DELETE", endpoint, "2", nil, nil)
+	request, err := piper.client.NewRequest("DELETE", endpoint, nil, nil)
 
 	if err != nil {
 		return nil, nil, err

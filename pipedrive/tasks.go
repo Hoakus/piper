@@ -21,9 +21,9 @@ type TaskResponse struct {
 
 // https://developers.pipedrive.com/docs/api/v1/Tasks#getTasks
 func (piper *TaskPiper) GetAll(ctx context.Context, params TasksGetOptions) (*TasksResponse, *http.Response, error) {
-	endpoint := "tasks"
+	endpoint := "api/v1/tasks"
 
-	request, err := piper.client.NewRequest("GET", endpoint, "1", &params, nil)
+	request, err := piper.client.NewRequest("GET", endpoint, &params, nil)
 
 	if err != nil {
 		return nil, nil, err
@@ -41,9 +41,9 @@ func (piper *TaskPiper) GetAll(ctx context.Context, params TasksGetOptions) (*Ta
 
 // https://developers.pipedrive.com/docs/api/v1/Tasks#getTask
 func (piper *TaskPiper) Get(ctx context.Context, taskID int) (*TaskResponse, *http.Response, error) {
-	endpoint := fmt.Sprintf("tasks/%d", taskID)
+	endpoint := fmt.Sprintf("api/v1/tasks/%d", taskID)
 
-	request, err := piper.client.NewRequest("GET", endpoint, "1", nil, nil)
+	request, err := piper.client.NewRequest("GET", endpoint, nil, nil)
 
 	if err != nil {
 		return nil, nil, err
@@ -62,13 +62,13 @@ func (piper *TaskPiper) Get(ctx context.Context, taskID int) (*TaskResponse, *ht
 
 // https://developers.pipedrive.com/docs/api/v1/Tasks#addTask
 func (piper *TaskPiper) Add(ctx context.Context, title string, projectID int, body TaskAddOptions) (*TaskResponse, *http.Response, error) {
-	endpoint := "tasks"
+	endpoint := "api/v1/tasks"
 
 	// ensuring required fields are set
 	body.Title = title
 	body.ProjectID = projectID
 
-	request, err := piper.client.NewRequest("POST", endpoint, "1", nil, body)
+	request, err := piper.client.NewRequest("POST", endpoint, nil, body)
 
 	if err != nil {
 		return nil, nil, err
@@ -87,9 +87,9 @@ func (piper *TaskPiper) Add(ctx context.Context, title string, projectID int, bo
 
 // https://developers.pipedrive.com/docs/api/v1/Tasks#updateTask
 func (piper *TaskPiper) Update(ctx context.Context, taskID int, params TaskUpdateOptions) (*TaskResponse, *http.Response, error) {
-	endpoint := fmt.Sprintf("tasks/%d", taskID)
+	endpoint := fmt.Sprintf("api/v1/tasks/%d", taskID)
 
-	request, err := piper.client.NewRequest("PUT", endpoint, "1", params, nil)
+	request, err := piper.client.NewRequest("PUT", endpoint, params, nil)
 
 	if err != nil {
 		return nil, nil, err
@@ -109,9 +109,9 @@ func (piper *TaskPiper) Update(ctx context.Context, taskID int, params TaskUpdat
 // https://developers.pipedrive.com/docs/api/v1/Tasks#deleteTask
 // marks a task as deleted - if it has subtasks, they will also be deleted
 func (piper *TaskPiper) Delete(ctx context.Context, taskID int) (*TaskResponse, *http.Response, error) {
-	endpoint := fmt.Sprintf("tasks/%d", taskID)
+	endpoint := fmt.Sprintf("api/v1/tasks/%d", taskID)
 
-	request, err := piper.client.NewRequest("DELETE", endpoint, "1", nil, nil)
+	request, err := piper.client.NewRequest("DELETE", endpoint, nil, nil)
 
 	if err != nil {
 		return nil, nil, err
