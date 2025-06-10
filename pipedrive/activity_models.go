@@ -56,7 +56,15 @@ type Location struct {
 	FormattedAddress string `json:"formatted_address"`
 }
 
-type ActivitiesAddOptions struct {
+type GetActivityOpts struct {
+	IncludeFields string `json:"include_fields"` // comma-separated string
+}
+
+func (a GetActivityOpts) String() string {
+	return Stringify(a)
+}
+
+type AddActivityOpts struct {
 	Subject           string        `json:"subject,omitempty"`
 	Type              string        `json:"type,omitempty"`
 	OwnerID           int           `json:"owner_id,omitempty"`
@@ -74,4 +82,32 @@ type ActivitiesAddOptions struct {
 	Location          *Location     `json:"location,omitempty"`
 	Participants      *Participants `json:"participants,omitempty"`
 	Attendees         *Attendees    `json:"attendees,omitempty"`
+}
+
+func (a AddActivityOpts) String() string {
+	return Stringify(a)
+}
+
+type UpdateActivityOpts struct {
+	Subject           string        `json:"subject,omitempty"`
+	Type              string        `json:"type,omitempty"`
+	OwnerID           int           `json:"owner_id,omitempty"`
+	LeadID            int           `json:"lead_id,omitempty"`
+	PersonID          int           `json:"person_id,omitempty"`
+	OrgID             int           `json:"org_id,omitempty"`
+	ProjectID         int           `json:"project_id,omitempty"`
+	Priority          int           `json:"priority,omitempty"`
+	Note              string        `json:"note,omitempty"`
+	DueDate           string        `json:"due_date,omitempty"`
+	DueTime           string        `json:"due_time,omitempty"`
+	Duration          string        `json:"duration,omitempty"`
+	PublicDescription string        `json:"public_description,omitempty"`
+	Done              bool          `json:"done,omitempty"`
+	Location          *Location     `json:"location,omitempty"`
+	Participants      *Participants `json:"participants,omitempty"`
+	Attendees         *Attendees    `json:"attendees,omitempty"`
+}
+
+func (a UpdateActivityOpts) String() string {
+	return Stringify(a)
 }

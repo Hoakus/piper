@@ -23,23 +23,12 @@ func main() {
 
 	ctx := context.Background()
 
-	// pipedrive modules are called "pipers" internally
-	// access any piper by it's module name - i.e "Organization"
-	// followed by an endpoint method
+	showDealFields(client, ctx)
 
-	// showDealFields(client, ctx)
-	LoopTest(client, ctx)
-
-}
-
-func PrintResult(record any) {
-	val, _ := json.Marshal(record)
-
-	fmt.Println(string(val))
 }
 
 func showDealFields(c *pipedrive.Client, ctx context.Context) {
-	record, _, err := c.DealFields.GetAll(ctx, pipedrive.GetDealsFieldsOptions{})
+	record, _, err := c.DealFields.GetAll(ctx, pipedrive.GetDealsFieldsOpts{})
 
 	if err != nil {
 		log.Fatalf("Failed to execute DealFields.GetAll(): %v", err)
@@ -60,36 +49,10 @@ func showDealFields(c *pipedrive.Client, ctx context.Context) {
 
 }
 
-func LoopTest(c *pipedrive.Client, ctx context.Context) {
-	// orgOpts := pipedrive.OrganizationAddOptions{Name: "API TEST"}
-	//
-	// newOrg, _, err := c.Organization.Add(ctx, orgOpts)
-	//
-	// if err != nil {
-	// 	log.Fatalf("Could not add organization?: %v", err)
-	// }
-	//
-	orgID := 5072
+func PrintResult(record any) {
+	val, _ := json.Marshal(record)
 
-	leadOpts := pipedrive.LeadAddOptions{Title: "API TEST LEAD", OrganizationID: orgID}
-
-	newLead, _, err := c.Leads.Add(ctx, leadOpts)
-
-	fmt.Println()
-
-	if err != nil {
-		log.Fatalf("Could not add lead: %v", err)
-	}
-
-	fmt.Println(newLead.Data.ID)
-	_, _, err = c.Leads.Delete(ctx, newLead.Data.ID)
-
-	if err != nil {
-		log.Fatalf("Could not delete lead: %v", err)
-	}
-
-	fmt.Println("Loop successful!")
-
+	fmt.Println(string(val))
 }
 
 func getCredentials(env_key string) string {

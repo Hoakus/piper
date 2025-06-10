@@ -19,22 +19,60 @@ type LeadResponse struct {
 	Data    Lead `json:"data"`
 }
 
-type leadsParams struct {
-	APIKey string `url:"api_token"`
-}
+// https://developers.pipedrive.com/docs/api/v1/Leads#getLead
+func (piper *LeadsPiper) Get(ctx context.Context, leadID string) (*LeadResponse, *http.Response, error) {
+	endpoint := fmt.Sprintf("v1/leads/%s", leadID)
 
-func (p leadsParams) String() string {
-	return Stringify(p)
+	params := leadsParams{APIKey: piper.client.apiKey}
+
+	request, err := piper.client.NewRequest("GET", endpoint, params, nil)
+
+	if err != nil {
+		return nil, nil, err
+	}
+
+	var record *LeadResponse
+
+	response, err := piper.client.Do(ctx, request, &record)
+
+	if err != nil {
+		return nil, nil, err
+	}
+
+	return record, response, nil
 }
 
 // https://developers.pipedrive.com/docs/api/v1/Leads#addLead
-// must provide either an organization ID or person ID in LeadAddOptions
-func (piper *LeadsPiper) Add(ctx context.Context, body LeadAddOptions) (*LeadResponse, *http.Response, error) {
+// must provide either an organization ID or person ID in options
+func (piper *LeadsPiper) Add(ctx context.Context, body AddLeadOpts) (*LeadResponse, *http.Response, error) {
 	endpoint := "v1/leads"
 
 	params := leadsParams{APIKey: piper.client.apiKey}
 
 	request, err := piper.client.NewRequest("POST", endpoint, params, body)
+
+	if err != nil {
+		return nil, nil, err
+	}
+
+	var record *LeadResponse
+
+	response, err := piper.client.Do(ctx, request, &record)
+
+	if err != nil {
+		return nil, nil, err
+	}
+
+	return record, response, nil
+}
+
+// https://developers.pipedrive.com/docs/api/v1/Leads#updateLead
+func (piper *LeadsPiper) Update(ctx context.Context, leadID string) (*LeadResponse, *http.Response, error) {
+	endpoint := fmt.Sprintf("v1/leads/%s", leadID)
+
+	params := leadsParams{APIKey: piper.client.apiKey}
+
+	request, err := piper.client.NewRequest("PATCH", endpoint, params, nil)
 
 	if err != nil {
 		return nil, nil, err

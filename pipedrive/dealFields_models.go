@@ -23,11 +23,11 @@ type DealFields struct {
 	MandatoryFlag       any        `json:"mandatory_flag"`
 }
 
-type GetDealsFieldsOptions struct {
+type GetDealsFieldsOpts struct {
 	Start int `url:"start,omitempty"`
 	Limit int `url:"limit,omitempty"`
 }
 
-func (p GetDealsFieldsOptions) String() string {
-	return Stringify(p)
+func (d GetDealsFieldsOpts) String() string {
+	return Stringify(d)
 }

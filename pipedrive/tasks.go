@@ -9,9 +9,9 @@ import (
 type TaskPiper piper
 
 type TasksResponse struct {
-	Success        bool            `json:"success"`
-	Tasks          []Task          `json:"data"`
-	AdditionalData *AdditionalData `json:"additional_data"`
+	Success        bool           `json:"success"`
+	Tasks          []Task         `json:"data"`
+	AdditionalData AdditionalData `json:"additional_data"`
 }
 
 type TaskResponse struct {
@@ -20,7 +20,7 @@ type TaskResponse struct {
 }
 
 // https://developers.pipedrive.com/docs/api/v1/Tasks#getTasks
-func (piper *TaskPiper) GetAll(ctx context.Context, params TasksGetOptions) (*TasksResponse, *http.Response, error) {
+func (piper *TaskPiper) GetAll(ctx context.Context, params GetTasksOpts) (*TasksResponse, *http.Response, error) {
 	endpoint := "api/v1/tasks"
 
 	request, err := piper.client.NewRequest("GET", endpoint, &params, nil)
@@ -61,7 +61,7 @@ func (piper *TaskPiper) Get(ctx context.Context, taskID int) (*TaskResponse, *ht
 }
 
 // https://developers.pipedrive.com/docs/api/v1/Tasks#addTask
-func (piper *TaskPiper) Add(ctx context.Context, title string, projectID int, body TaskAddOptions) (*TaskResponse, *http.Response, error) {
+func (piper *TaskPiper) Add(ctx context.Context, title string, projectID int, body AddTaskOpts) (*TaskResponse, *http.Response, error) {
 	endpoint := "api/v1/tasks"
 
 	// ensuring required fields are set
@@ -86,7 +86,7 @@ func (piper *TaskPiper) Add(ctx context.Context, title string, projectID int, bo
 }
 
 // https://developers.pipedrive.com/docs/api/v1/Tasks#updateTask
-func (piper *TaskPiper) Update(ctx context.Context, taskID int, params TaskUpdateOptions) (*TaskResponse, *http.Response, error) {
+func (piper *TaskPiper) Update(ctx context.Context, taskID int, params UpdateTaskOpts) (*TaskResponse, *http.Response, error) {
 	endpoint := fmt.Sprintf("api/v1/tasks/%d", taskID)
 
 	request, err := piper.client.NewRequest("PUT", endpoint, params, nil)

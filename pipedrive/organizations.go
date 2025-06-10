@@ -14,13 +14,13 @@ type OrganizationResponse struct {
 }
 
 type OrganizationsResponse struct {
-	Success        bool            `json:"success"`
-	Data           []Organization  `json:"data"`
-	AdditionalData *AdditionalData `json:"additional_data,omitempty"`
+	Success        bool           `json:"success"`
+	Data           []Organization `json:"data"`
+	AdditionalData AdditionalData `json:"additional_data"`
 }
 
 // https://developers.pipedrive.com/docs/api/v1/Organizations#getOrganizations
-func (piper *OrganizationPiper) GetAll(ctx context.Context, params OrganizationsGetOptions) (*OrganizationsResponse, *http.Response, error) {
+func (piper *OrganizationPiper) GetAll(ctx context.Context, params GetOrganizationsOpts) (*OrganizationsResponse, *http.Response, error) {
 	endpoint := "api/v2/organizations"
 
 	request, err := piper.client.NewRequest("GET", endpoint, &params, nil)
@@ -40,7 +40,7 @@ func (piper *OrganizationPiper) GetAll(ctx context.Context, params Organizations
 }
 
 // https://developers.pipedrive.com/docs/api/v1/Organizations#getOrganization
-func (piper *OrganizationPiper) Get(ctx context.Context, orgID int, params OrganizationGetOptions) (*OrganizationResponse, *http.Response, error) {
+func (piper *OrganizationPiper) Get(ctx context.Context, orgID int, params GetOrganizationOpts) (*OrganizationResponse, *http.Response, error) {
 	endpoint := fmt.Sprintf("api/v2/organizations/%d", orgID)
 
 	request, err := piper.client.NewRequest("GET", endpoint, params, nil)
@@ -52,6 +52,7 @@ func (piper *OrganizationPiper) Get(ctx context.Context, orgID int, params Organ
 	var record *OrganizationResponse
 
 	response, err := piper.client.Do(ctx, request, &record)
+
 	if err != nil {
 		return nil, response, err
 	}
@@ -60,7 +61,7 @@ func (piper *OrganizationPiper) Get(ctx context.Context, orgID int, params Organ
 }
 
 // https://developers.pipedrive.com/docs/api/v1/Organizations#addOrganization
-func (piper *OrganizationPiper) Add(ctx context.Context, body OrganizationAddOptions) (*OrganizationResponse, *http.Response, error) {
+func (piper *OrganizationPiper) Add(ctx context.Context, body AddOrganizationOpts) (*OrganizationResponse, *http.Response, error) {
 	endpoint := "api/v2/organizations"
 
 	request, err := piper.client.NewRequest("POST", endpoint, nil, body)
@@ -80,7 +81,7 @@ func (piper *OrganizationPiper) Add(ctx context.Context, body OrganizationAddOpt
 }
 
 // https://developers.pipedrive.com/docs/api/v1/Organizations#updateOrganization
-func (piper *OrganizationPiper) Update(ctx context.Context, orgID int, body OrganizationUpdateOptions) (*OrganizationResponse, *http.Response, error) {
+func (piper *OrganizationPiper) Update(ctx context.Context, orgID int, body UpdateOrganizationOpts) (*OrganizationResponse, *http.Response, error) {
 	endpoint := fmt.Sprintf("api/v2/organizations/%d", orgID)
 
 	request, err := piper.client.NewRequest("PATCH", endpoint, nil, body)

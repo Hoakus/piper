@@ -4,9 +4,11 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"github.com/google/go-querystring/query"
 	"io"
+	"log"
 	"net/http"
 	"net/url"
 	"strconv"
@@ -16,16 +18,13 @@ import (
 )
 
 const (
+	hostProtocol   = "https"
 	defaultBaseURL = "pipedrive.com/"
-
-	hostProtocol = "https"
 
 	// The amount of requests current API token can perform for the 10 seconds window.
 	headerRateLimit = "X-RateLimit-Limit"
-
 	// The amount of requests left for the 10 seconds window.
 	headerRateRemaining = "X-RateLimit-Remaining"
-
 	// The amount of seconds before the limit resets.
 	headerRateReset = "X-RateLimit-Reset"
 )
@@ -39,9 +38,9 @@ type Config struct {
 // Client that is returned from call of pipedrive.NewClient()
 type Client struct {
 	client  *http.Client
-	BaseURL *url.URL
 	apiKey  string
-	Rate    *ClientRate
+	BaseURL *url.URL
+	Rate    *Rate
 
 	// Every pipedrive module is a piper
 	common piper
@@ -58,7 +57,7 @@ type piper struct {
 	client *Client
 }
 
-type ClientRate struct {
+type Rate struct {
 	Limit     int
 	Remaining int
 	Reset     time.Duration
@@ -66,20 +65,20 @@ type ClientRate struct {
 }
 
 func (c *Client) setRateDetails(response *http.Response) error {
-	// sets the clients Rate field to the values received
-	// from the most recent response in Client.Do -
-	// probably need a more elegant solutions for this.
 	rateLimit, err := strconv.Atoi(response.Header.Get(headerRateLimit))
+
 	if err != nil {
 		return err
 	}
 
 	rateRemaining, err := strconv.Atoi(response.Header.Get(headerRateRemaining))
+
 	if err != nil {
 		return err
 	}
 
 	rateReset, err := time.ParseDuration(response.Header.Get(headerRateReset) + "s")
+
 	if err != nil {
 		return err
 	}
@@ -94,21 +93,16 @@ func (c *Client) setRateDetails(response *http.Response) error {
 	return nil
 }
 
-func (c *Client) createRequestURL(endpoint string, queryParams any) (string, error) {
+func (c *Client) createRequestURL(endpoint string, params any) (string, error) {
 	reqURL := *c.BaseURL
 
-	// some pipedrive endpoints require endpoint requests to contain
-	// information in the URL, but not as a query param. In these cases,
-	// the correct value needs to be passed in as part of the endpoint
-	// string, not queryParams
 	reqURL.Path += endpoint
 
-	if queryParams == nil {
+	if params == nil {
 		return reqURL.String(), nil
 	}
 
-	// uses go-querystrings to add paramaters to the final query
-	userQueries, err := query.Values(queryParams)
+	userQueries, err := query.Values(params)
 
 	if err != nil {
 		return endpoint, err
@@ -124,34 +118,30 @@ func checkForErrors(response *http.Response) error {
 		return nil
 	}
 
-	errorDetails := ErrorDetails{}
+	ed := ErrorDetails{}
 
-	json.NewDecoder(response.Body).Decode(&errorDetails)
+	json.NewDecoder(response.Body).Decode(&ed)
 
 	errorResponse := ErrorResponse{
 		Response: response,
-		Details:  errorDetails,
+		Details:  ed,
 	}
 
 	return errorResponse
 }
 
-func (c *Client) NewRequest(method, endpoint string, queryParams, body any) (*http.Request, error) {
-	// apiVersion must be passed in as not all endpoints have migrated to v2
+func (c *Client) NewRequest(method, endpoint string, params, body any) (*http.Request, error) {
 	if !strings.HasSuffix(c.BaseURL.Path, "/") {
 		return nil, fmt.Errorf("Client.BaseURL must end with '/' : %v", c.BaseURL)
 	}
 
-	url, err := c.createRequestURL(endpoint, queryParams)
+	url, err := c.createRequestURL(endpoint, params)
 
 	if err != nil {
 		return nil, err
 	}
 
-	// Prepare payload if body exists
 	var payload io.ReadWriter
-
-	fmt.Println(body)
 	if body != nil {
 		buf := &bytes.Buffer{}
 		encoder := json.NewEncoder(buf)
@@ -162,16 +152,13 @@ func (c *Client) NewRequest(method, endpoint string, queryParams, body any) (*ht
 		if err != nil {
 			return nil, err
 		}
-
 		payload = buf
 	}
-
-	fmt.Println(payload)
 
 	request, err := http.NewRequest(method, url, payload)
 
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("Failed to create new http.Request: %v", err)
 	}
 
 	request.Header.Set("x-api-token", c.apiKey)
@@ -184,23 +171,23 @@ func (c *Client) NewRequest(method, endpoint string, queryParams, body any) (*ht
 }
 
 func (c *Client) Do(ctx context.Context, request *http.Request, container any) (*http.Response, error) {
-	// Check Rate Limiting first
-	//
-	// this is baked in to the package for now - sorry
 	if c.Rate != nil {
 		c.Rate.mu.Lock()
 
 		if c.Rate.Remaining == 0 {
+			// Add's 1 back to the current client Rate
+			// to prevent blocking on next request once error
+			// has been handled by the caller
+			c.Rate.Remaining = 1
+
 			c.Rate.mu.Unlock()
 
 			select {
-			// wait for the rate limit to reset before continuing
-			case <-time.After(c.Rate.Reset * time.Second):
-			// unless the context is done first
 			case <-ctx.Done():
-				{
-					return nil, ctx.Err()
-				}
+				return nil, ctx.Err()
+			default:
+
+				return nil, errors.New("Rate limit reached. Aborted")
 			}
 
 		} else {
@@ -209,6 +196,7 @@ func (c *Client) Do(ctx context.Context, request *http.Request, container any) (
 	}
 
 	request = request.WithContext(ctx)
+
 	response, err := c.client.Do(request)
 
 	if err != nil {
@@ -216,21 +204,20 @@ func (c *Client) Do(ctx context.Context, request *http.Request, container any) (
 		case <-ctx.Done():
 			return nil, ctx.Err()
 		default:
-			return nil, err
+			return nil, fmt.Errorf("Failed to do http.Request: %v", err)
 		}
 	}
 
-	// Set the Rate details returned from the response
-	// so we can control request flow on subsequent calls
-	// and prevent errors from rate limitng
 	err = c.setRateDetails(response)
+
 	if err != nil {
-		fmt.Println(err)
+		log.Fatalf("FATAL: Could not set rate details for pipedrive client: %v", err)
 	}
 
 	err = checkForErrors(response)
+
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("Client received non-200 status code: %v", err)
 	}
 
 	// Reading a small, fixed amount (like 512 bytes) ensures that any
@@ -241,43 +228,44 @@ func (c *Client) Do(ctx context.Context, request *http.Request, container any) (
 		response.Body.Close()
 	}()
 
-	// Unmarshal the data to the provided piperResponse struct
-	// passed in from the piper.method caller
+	// Unmarshal the data to the provided response struct
 	err = json.NewDecoder(response.Body).Decode(container)
+
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("Failed to decode response into container: %v", err)
 	}
 
 	return response, nil
 }
 
 func NewClient(cfg *Config) *Client {
-	baseURLString := hostProtocol + "://" + cfg.DomainName + "." + defaultBaseURL
-	baseURL, _ := url.Parse(baseURLString)
+	urlString := fmt.Sprintf("%s://%s.%s", hostProtocol, cfg.DomainName, defaultBaseURL)
+	baseURL, _ := url.Parse(urlString)
 
-	rate := &ClientRate{
+	// Initialize rate with 1 request to ensure getRateDetails updates the rate
+	// from the first response before allowing additional requests
+	rate := &Rate{
 		Limit:     0,
 		Remaining: 1,
 		Reset:     time.Duration(0),
 	}
 
-	newClient := &Client{
+	c := &Client{
 		client:  http.DefaultClient,
 		BaseURL: baseURL,
 		apiKey:  cfg.APIKey,
 		Rate:    rate,
 	}
 
-	// newClient.Organization.client = newClient
-	newClient.common.client = newClient
+	c.common.client = c
 
 	// this allows functionality for every piper to use the
 	// underlying logic of client
-	newClient.Organization = (*OrganizationPiper)(&newClient.common)
-	newClient.Task = (*TaskPiper)(&newClient.common)
-	newClient.Activities = (*ActivitiesPiper)(&newClient.common)
-	newClient.Leads = (*LeadsPiper)(&newClient.common)
-	newClient.DealFields = (*DealFieldsPiper)(&newClient.common)
+	c.Organization = (*OrganizationPiper)(&c.common)
+	c.Task = (*TaskPiper)(&c.common)
+	c.Activities = (*ActivitiesPiper)(&c.common)
+	c.Leads = (*LeadsPiper)(&c.common)
+	c.DealFields = (*DealFieldsPiper)(&c.common)
 
-	return newClient
+	return c
 }

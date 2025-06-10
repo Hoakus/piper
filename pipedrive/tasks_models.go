@@ -18,7 +18,7 @@ type Task struct {
 	} `json:"additional_data"`
 }
 
-type TasksGetOptions struct {
+type GetTasksOpts struct {
 	Cursor       string `url:"cursor,omitempty"`
 	Limit        int    `url:"limit,omitempty"`
 	AssigneeID   int    `url:"assignee_id,omitempty"`
@@ -27,11 +27,11 @@ type TasksGetOptions struct {
 	Done         int    `url:"done,omitempty"`
 }
 
-func (t TasksGetOptions) String() string {
+func (t GetTasksOpts) String() string {
 	return Stringify(t)
 }
 
-type TaskAddOptions struct {
+type AddTaskOpts struct {
 	ProjectID    int    `json:"project_id"`
 	Title        string `json:"title"`
 	Description  string `json:"description,omitempty"`
@@ -40,11 +40,11 @@ type TaskAddOptions struct {
 	Done         int    `json:"done,omitempty"`
 }
 
-func (t TaskAddOptions) String() string {
+func (t AddTaskOpts) String() string {
 	return Stringify(t)
 }
 
-type TaskUpdateOptions struct {
+type UpdateTaskOpts struct {
 	ProjectID    int    `json:"project_id,omitempty"`
 	Title        string `json:"title,omitempty"`
 	Description  string `json:"description,omitempty"`
@@ -53,6 +53,6 @@ type TaskUpdateOptions struct {
 	Done         int    `json:"done,omitempty"`
 }
 
-func (t TaskUpdateOptions) String() string {
+func (t UpdateTaskOpts) String() string {
 	return Stringify(t)
 }

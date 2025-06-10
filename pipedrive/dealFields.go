@@ -19,7 +19,7 @@ type DealFieldsResponse struct {
 }
 
 // https://developers.pipedrive.com/docs/api/v1/DealFields#getDealFields
-func (d *DealFieldsPiper) GetAll(ctx context.Context, params GetDealsFieldsOptions) (*DealsFieldsResponse, *http.Response, error) {
+func (d *DealFieldsPiper) GetAll(ctx context.Context, params GetDealsFieldsOpts) (*DealsFieldsResponse, *http.Response, error) {
 	endpoint := "api/v1/dealFields"
 
 	request, err := d.client.NewRequest("GET", endpoint, params, nil)
