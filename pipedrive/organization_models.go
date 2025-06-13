@@ -33,7 +33,7 @@ type Organization struct {
 	RelatedWonDealsCount    int        `json:"related_won_deals_count,omitempty"`
 	LostDealsCount          int        `json:"lost_deals_count,omitempty"`
 	RelatedLostDealsCount   int        `json:"related_lost_deals_count,omitempty"`
-	CustomFields            *any       `json:"custom_fields,omitempty"`
+	CustomFields            any        `json:"custom_fields,omitempty"`
 }
 
 type Address struct {
@@ -60,7 +60,7 @@ type GetOrganizationsOpts struct {
 	Limit         int      `url:"limit,omitempty"`
 	Cursor        string   `url:"cursor,omitempty"`
 	IncludeFields string   `url:"include_fields,omitempty"` // comma-separated string
-	CustomFields  *any     `url:"custom_fields,omitempty"`  // comma-separated string
+	CustomFields  any      `url:"custom_fields,omitempty"`  // comma-separated string
 }
 
 func (p GetOrganizationsOpts) String() string {
@@ -84,7 +84,7 @@ type AddOrganizationOpts struct {
 	VisibleTo    int        `json:"visible_to,omitempty"`
 	LabelIDs     []int      `json:"label_ids,omitempty"`
 	Address      *Address   `json:"address,omitempty"`
-	CustomFields *any       `json:"custom_fields,omitempty"`
+	CustomFields any        `json:"custom_fields,omitempty"`
 }
 
 func (p AddOrganizationOpts) String() string {
@@ -102,7 +102,7 @@ type UpdateOrganizationOpts struct {
 	VisibleTo    int        `json:"visible_to,omitempty"`
 	LabelIDs     []int      `json:"label_ids,omitempty"`
 	Address      *Address   `json:"address,omitempty"`
-	CustomFields *any       `json:"custom_fields,omitempty"`
+	CustomFields any        `json:"custom_fields,omitempty"`
 }
 
 func (o UpdateOrganizationOpts) String() string {
