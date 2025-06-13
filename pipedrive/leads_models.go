@@ -25,7 +25,7 @@ type Lead struct {
 	CcEmail           string     `json:"cc_email"`
 }
 
-type AddLeadOpts struct {
+type LeadAddOpts struct {
 	Title             string    `json:"title"` // required
 	OwnerID           int       `json:"owner_id,omitempty"`
 	LabelIDs          []string  `json:"label_ids,omitempty"`

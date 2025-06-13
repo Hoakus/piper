@@ -60,7 +60,7 @@ type GetOrganizationsOpts struct {
 	Limit         int      `url:"limit,omitempty"`
 	Cursor        string   `url:"cursor,omitempty"`
 	IncludeFields string   `url:"include_fields,omitempty"` // comma-separated string
-	CustomFields  string   `url:"custom_fields,omitempty"`  // comma-separated string
+	CustomFields  *any     `url:"custom_fields,omitempty"`  // comma-separated string
 }
 
 func (p GetOrganizationsOpts) String() string {
