@@ -51,6 +51,7 @@ type Client struct {
 	Activities   *ActivitiesPiper
 	Leads        *LeadsPiper
 	DealFields   *DealFieldsPiper
+	Persons      *PersonsPiper
 }
 
 type piper struct {
@@ -266,6 +267,7 @@ func NewClient(cfg *Config) *Client {
 	c.Activities = (*ActivitiesPiper)(&c.common)
 	c.Leads = (*LeadsPiper)(&c.common)
 	c.DealFields = (*DealFieldsPiper)(&c.common)
+	c.Persons = (*PersonsPiper)(&c.common)
 
 	return c
 }
